@@ -1,0 +1,67 @@
+apiVersion: v1  # Version de l'API Kubernetes
+kind: ConfigMap  # Type de ressource, une ConfigMap pour stocker des données de configuration
+metadata:
+  name: database-config  # Nom de la ConfigMap
+data:
+  SPRING_DATASOURCE_USERNAME: root  # Données de configuration pour le nom d'utilisateur de la base de données
+
+---
+
+apiVersion: apps/v1  # Version de l'API Kubernetes
+kind: Deployment  # Type de ressource, un déploiement pour l'application
+metadata:
+  name: tutorial-app-server  # Nom du déploiement
+  labels:
+    app: tutorial-app-server  # Étiquette pour l'application de ce déploiement
+spec:
+  replicas: 1  # Nombre de répliques à maintenir
+  selector:
+    matchLabels:
+      app: tutorial-app-server  # Sélecteur pour trouver les pods associés à ce déploiement
+  template:
+    metadata:
+      labels:
+        app: tutorial-app-server  # Étiquette pour l'application dans le template
+    spec:
+      containers:
+      - name: tutorial-app-server  # Nom du conteneur
+        image: baowendnere/backend:1.0.1  # Image Docker utilisée pour le conteneur
+        imagePullPolicy: IfNotPresent  # Politique de récupération de l'image
+        ports:
+        - name: http  # Nom du port
+          containerPort: 8080  # Port exposé par le conteneur
+        resources:
+          limits:  # Limites de ressources pour le conteneur
+            cpu: 0.2  # Limite de CPU
+            memory: "200Mi"  # Limite de mémoire
+        envFrom:  # Injection d'environnement à partir d'une ConfigMap
+        - configMapRef:
+            name: database-config  # Référence à la ConfigMap contenant les variables d'environnement
+        env:  # Variables d'environnement spécifiques
+          - name: SPRING_DATASOURCE_PASSWORD  # Nom de la variable d'environnement pour le mot de passe de la base de données
+            valueFrom:
+              secretKeyRef:
+                name: mysql-root-pass  # Référence au secret contenant le mot de passe
+                key: password  # Clé du secret
+          - name: SPRING_DATASOURCE_URL  # Nom de la variable d'environnement pour l'URL de la base de données
+            valueFrom:
+              secretKeyRef:
+                name: mysql-db-url  # Référence au secret contenant l'URL
+                key: url  # Clé du secret
+
+---
+
+apiVersion: v1  # Version de l'API Kubernetes
+kind: Service  # Type de ressource, un service pour exposer l'application
+metadata:
+  name: tutorial-app-server  # Nom du service
+  labels:
+    app: tutorial-app-server  # Étiquette pour l'application de ce service
+spec:
+  type: NodePort  # Type de service (exposé sur un port spécifique de chaque nœud)
+  selector:
+    app: tutorial-app-server  # Sélecteur pour les pods associés à ce service
+  ports:
+  - name: http  # Nom du port
+    port: 8080  # Port du service
+    targetPort: 8080  # Port cible sur les pods associés au service

@@ -1,0 +1,44 @@
+version: '3.8'  # Version de la syntaxe du fichier docker-compose
+
+services:  # Définition des services pour le déploiement de conteneurs
+
+  mysql-container:  # Service pour un conteneur MySQL
+    image: mysql:latest  # Utilisation de l'image MySQL la plus récente
+    container_name: mysql-container  # Nom du conteneur MySQL
+    ports:
+      - "3306:3306"  # Mappage du port 3306 de l'hôte au port 3306 du conteneur MySQL
+    networks:
+      - appnetwork  # Connexion au réseau nommé 'appnetwork'
+    volumes:
+      - mysqlvol:/var/lib/mysql   # Montage du volume 'mysqlvol' dans le dossier /var/lib/mysql du conteneur
+    environment:
+      MYSQL_ROOT_PASSWORD: root  # Définition du mot de passe root pour MySQL
+      MYSQL_DATABASE: backenddb  # Définition de la base de données par défaut pour MySQL
+
+  backend:  # Service pour le backend
+    image: baowendnere/backend:1.0.0  # Utilisation de l'image backend:1.0.0
+    container_name: backend  # Nom du conteneur backend
+    ports:
+      - "8080:8080"  # Mappage du port 8080 de l'hôte au port 8080 du conteneur backend
+    networks:
+      - appnetwork  # Connexion au réseau nommé 'appnetwork'
+    depends_on:
+      - mysql-container  # Dépendance du backend au conteneur MySQL
+
+  frontend:  # Service pour le frontend
+    image: baowendnere/frontend:1.0.0  # Utilisation de l'image frontend:1.0.0
+    container_name: frontend  # Nom du conteneur frontend
+    ports:
+      - "8081:80"  # Mappage du port 8081 de l'hôte au port 80 du conteneur frontend
+    networks:
+      - appnetwork  # Connexion au réseau nommé 'appnetwork'
+    depends_on:
+      - backend  # Dépendance du frontend au backend
+
+volumes:  # Définition des volumes
+  mysqlvol:  # Nom du volume
+    driver: local  # Utilisation d'un volume local
+
+networks:  # Définition des réseaux
+  appnetwork:  # Nom du réseau
+    driver: bridge  # Utilisation du driver de réseau de type bridge

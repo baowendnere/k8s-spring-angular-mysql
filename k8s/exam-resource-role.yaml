@@ -1,0 +1,9 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: exam-resource-role
+  namespace: exam
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps", "secrets", "deployments"]  # Ressources spécifiques auxquelles le rôle a accès
+  verbs: ["get", "list", "watch"]  # Actions autorisées sur ces ressources

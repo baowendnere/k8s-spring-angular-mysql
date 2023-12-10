@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv # Nom du volume persistant
+  labels:
+    type: local # Étiquette indiquant le type de volume
+spec:
+  storageClassName: standard # Classe de stockage du volume
+  capacity:
+    storage: 250Mi # Capacité de stockage du volume
+  accessModes:
+    - ReadWriteOnce # Modes d'accès autorisés
+  hostPath:
+    path: "/mnt/data" # Chemin sur l'hôte où le volume est stocké
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pv-claim # Nom de la demande de volume persistant
+  labels:
+    app: tutorial-app # Étiquette pour l'application
+spec:
+  storageClassName: standard # Classe de stockage pour la demande
+  accessModes:
+    - ReadWriteOnce # Modes d'accès autorisés
+  resources:
+    requests:
+      storage: 250Mi # Capacité de stockage demandée
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tutorial-app-mysql # Nom du service MySQL
+  labels:
+    app: tutorial-app # Étiquette pour l'application
+spec:
+  ports:
+    - port: 3306 # Port exposé par le service
+  selector:
+    app: tutorial-app # Sélecteur pour le déploiement associé
+    tier: mysql # Étiquette pour le niveau de service
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tutorial-app-mysql # Nom du déploiement MySQL
+  labels:
+    app: tutorial-app # Étiquette pour l'application
+spec:
+  replicas: 2 # Nombre de répliques du déploiement
+  selector:
+    matchLabels:
+      app: tutorial-app # Sélecteur pour le déploiement
+      tier: mysql # Étiquette pour le niveau de service
+  strategy:
+    type: Recreate # Stratégie de déploiement
+  template:
+    metadata:
+      labels:
+        app: tutorial-app # Étiquette pour l'application
+        tier: mysql # Étiquette pour le niveau de service
+    spec:
+      containers:
+        - image: mysql:5.6 # Image Docker utilisée
+          name: mysql # Nom du conteneur MySQL
+          env:
+            - name: MYSQL_ROOT_PASSWORD # Variable d'environnement pour le mot de passe root
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-root-pass # Nom de la référence secrète
+                  key: password # Clé du secret
+            - name: MYSQL_DATABASE # Variable d'environnement pour la base de données
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-db-url # Nom de la référence secrète
+                  key: database # Clé du secret
+          ports:
+            - containerPort: 3306 # Port exposé par le conteneur MySQL
+              name: mysql # Nom du port
+          volumeMounts:
+            - name: mysql-persistent-storage # Nom du volume monté
+              mountPath: /var/lib/mysql # Chemin de montage dans le conteneur
+      volumes:
+        - name: mysql-persistent-storage # Nom du volume
+          persistentVolumeClaim:
+            claimName: mysql-pv-claim # Nom de la demande de volume persistant

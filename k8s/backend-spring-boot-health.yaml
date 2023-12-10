@@ -1,0 +1,38 @@
+apiVersion: apps/v1  # Version de l'API Kubernetes
+kind: Deployment  # Type de ressource, un déploiement
+metadata:
+  name: backend-spring-boot-health  # Nom du déploiement
+  namespace: exam  # Espace de noms où le déploiement est créé
+spec:
+  selector:
+    matchLabels:
+      app: backend-spring-boot-health  # Sélecteur pour trouver les pods associés à ce déploiement
+  replicas: 1  # Nombre de répliques pour le déploiement
+  template:
+    metadata:
+      labels:
+        app: backend-spring-boot-health  # Étiquette pour l'application dans le template du déploiement
+    spec:
+      containers:
+      - name: tutorial-app-server  # Nom du conteneur
+        image: baowendnere/backend:1.0.1  # Image Docker utilisée pour le conteneur du serveur Spring Boot
+        ports:
+        - containerPort: 8080  # Port exposé par le conteneur
+        livenessProbe:  # Vérification de la disponibilité du conteneur
+          httpGet:  # Type de vérification basée sur une requête HTTP GET
+            path: /actuator/health  # Chemin à interroger pour la sonde de vivacité
+            port: 8080  # Port à interroger pour la sonde de vivacité
+          initialDelaySeconds: 15  # Délai avant la première vérification
+          periodSeconds: 10  # Fréquence des vérifications
+        readinessProbe:  # Vérification de la préparation du conteneur
+          httpGet:  # Type de vérification basée sur une requête HTTP GET
+            path: /actuator/health  # Chemin à interroger pour la sonde de préparation
+            port: 8080  # Port à interroger pour la sonde de préparation
+          initialDelaySeconds: 20  # Délai avant la première vérification
+          periodSeconds: 10  # Fréquence des vérifications
+        startupProbe:  # Vérification du démarrage du conteneur
+          httpGet:  # Type de vérification basée sur une requête HTTP GET
+            path: /actuator/health  # Chemin à interroger pour la sonde de démarrage
+            port: 8080  # Port à interroger pour la sonde de démarrage
+          failureThreshold: 30  # Nombre maximum de tentatives de vérification en échec
+          periodSeconds: 10  # Fréquence des vérifications

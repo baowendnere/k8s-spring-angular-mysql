@@ -1,0 +1,40 @@
+apiVersion: apps/v1  # Version de l'API Kubernetes
+kind: Deployment  # Type de ressource, un déploiement pour l'application cliente
+metadata:
+  name: tutorial-app-client  # Nom du déploiement
+spec:
+  replicas: 2  # Nombre de répliques à maintenir
+  selector:
+    matchLabels:
+      app: tutorial-app-client  # Sélecteur pour trouver les pods associés à ce déploiement
+  template:
+    metadata:
+      labels:
+        app: tutorial-app-client  # Étiquette pour l'application dans le template
+    spec:
+      containers:
+      - name: tutorial-app-client  # Nom du conteneur
+        image: baowendnere/frontend:1.0.1  # Image Docker utilisée pour le conteneur de l'application cliente
+        imagePullPolicy: IfNotPresent  # Politique de récupération de l'image
+        ports:
+          - name: http  # Nom du port
+            containerPort: 80  # Port exposé par le conteneur
+        resources:
+          limits:  # Limites de ressources pour le conteneur
+            cpu: 0.2  # Limite de CPU
+            memory: "10Mi"  # Limite de mémoire
+
+---
+
+apiVersion: v1  # Version de l'API Kubernetes
+kind: Service  # Type de ressource, un service pour exposer l'application cliente
+metadata:
+  name: tutorial-app-client  # Nom du service
+spec:
+  type: NodePort  # Type de service (exposé sur un port spécifique de chaque nœud)
+  selector:
+    app: tutorial-app-client  # Sélecteur pour les pods associés à ce service
+  ports:
+  - name: http  # Nom du port
+    port: 8081  # Port du service
+    targetPort: 80  # Port cible sur les pods associés au service

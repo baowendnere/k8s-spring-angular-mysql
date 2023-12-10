@@ -1,0 +1,10 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: exam-disruption-budget
+  namespace: exam
+spec:
+  minAvailable: 1  # Nombre minimal de pods disponibles pendant les disruptions
+  selector:
+    matchLabels:
+      app: tutorial-app-client  # Sélectionne les pods de votre application via des labels

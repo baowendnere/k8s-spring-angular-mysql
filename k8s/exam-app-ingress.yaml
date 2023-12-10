@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1  # Version de l'API Kubernetes pour Ingress
+kind: Ingress  # Type de ressource, une configuration d'ingress
+metadata:
+  name: exam-app-ingress  # Nom de la configuration d'ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /  # Annotation pour la réécriture de l'URL
+spec:
+  rules:
+  - host: exam-aseds-ine2.com  # Nom du domaine pour lequel cet ingress est applicable
+    http:
+      paths:
+      - path: /  # Chemin à correspondre dans l'URL
+        pathType: Prefix  # Type de correspondance du chemin (Prefix ici)
+        backend:
+          service:
+            name: tutorial-app-client  # Nom du service auquel rediriger le trafic
+            port:
+              number: 8081  # Port du service auquel rediriger le trafic

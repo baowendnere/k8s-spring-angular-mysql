@@ -1,0 +1,21 @@
+apiVersion: v1  # Version de l'API Kubernetes
+kind: ServiceAccount  # Type de ressource, un compte de service
+metadata:
+  name: mon-service-account  # Nom du compte de service
+  namespace: exam  # Espace de noms où le compte de service est créé
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1  # Version de l'API pour les règles d'accès basées sur les rôles (RBAC)
+kind: RoleBinding  # Type de ressource, une liaison de rôle
+metadata:
+  name: exam-resource-rolebinding  # Nom de la liaison de rôle
+  namespace: exam  # Espace de noms où la liaison de rôle est créée
+subjects:
+- kind: User  # Type d'entité concernée par cette liaison de rôle (peut être User, Group ou ServiceAccount)
+  name: mon-service-account  # Nom de l'utilisateur, groupe ou compte de service concerné
+  apiGroup: rbac.authorization.k8s.io  # Groupe d'API associé à l'entité concernée
+roleRef:
+  kind: Role  # Type de rôle référencé dans cette liaison
+  name: exam-resource-role  # Nom du rôle référencé
+  apiGroup: rbac.authorization.k8s.io  # Groupe d'API associé au rôle référencé
